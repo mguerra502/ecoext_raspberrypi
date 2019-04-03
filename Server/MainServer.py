@@ -2,7 +2,6 @@ import sys
 
 from Server import Server
 
-
 def MainServer():
 
     server = Server(sys.argv[1], int(sys.argv[2]))

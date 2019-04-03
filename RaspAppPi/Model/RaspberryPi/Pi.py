@@ -10,6 +10,10 @@ class Pi():
         self.host, self.port = host, port
         self._setListenerSocket()
         self.multiplexor.register(self.listenerSocket, selectors.EVENT_READ, data = None)
+    
+    def setViewController(self, view, controller):
+        self._view = view
+        self._controller = controller
 
     def _setListenerSocket(self):
         self.listenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,18 +29,19 @@ class Pi():
         conn, addr = self.listenerSocket.accept() # Should be ready to read
         print("Accepted connection from {}.".format(addr))
         conn.setblocking(False)
-        message = PiMessage(self.multiplexor, conn, addr)
+        message = PiMessage(self._controller, self.multiplexor, conn, addr, self.port)
         self.multiplexor.register(conn, selectors.EVENT_READ, data = message)
 
     def startMonitoringSocket(self):
         try:
             while True:
                 self._homeWindowClosed = False
-                events = self.multiplexor.select(timeout = 1)
+                self._events = self.multiplexor.select(timeout = 1)
+                
                 if self._homeWindowClosed:
                     break
 
-                for key, mask in events:
+                for key, mask in self._events:
                     if key.data is None:
                         self._acceptConnectionWrapper(key.fileobj)
                     else:
@@ -55,3 +60,9 @@ class Pi():
     def getMultiplexor(self):
         self._homeWindowClosed = True
         return self.multiplexor
+
+    def getListenerSocket(self):
+        return self.listenerSocket
+
+    def getEvents(self):
+        return self._events

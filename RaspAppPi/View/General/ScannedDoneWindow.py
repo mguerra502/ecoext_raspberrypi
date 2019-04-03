@@ -9,7 +9,7 @@ class ScannedDoneWindow(TopLevelWindow):
     def __init__(self, theView):
         super().__init__("EcoExT", 480, 320)
         self.view = theView
-
+        self.protocol("WM_DELETE_WINDOW", self.onClosing)
         self._setImageOnScannedDoneWindow()
 
     def _setImageOnScannedDoneWindow(self):
@@ -23,3 +23,9 @@ class ScannedDoneWindow(TopLevelWindow):
         logoLoader = ImageLoader(pathToImage)
         self._logoImage = logoLoader.getPhotoImage()
         logoCanvas.create_image(240, 160, image = self._logoImage)
+
+    def onClosing(self):
+        self.view.getHomeWindow().update()
+        self.view.getHomeWindow().deiconify()
+        self.view.getHomeWindow().focus()
+        self.destroy()

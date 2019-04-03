@@ -8,7 +8,7 @@ class TopLevelWindow(Toplevel):
         self.title(title)
         #self.iconbitmap(iconLocation)
         self.configure(background = 'white')
-        #self.attributes('-fullscreen', True)
+        self.attributes('-fullscreen', True)
         self.geometry("%dx%d+0+0" % (width, height))
         self.resizable(False, False)
         self.after(0, self.deiconify)

@@ -6,4 +6,4 @@ class MainPi():
         self._raspberryPi = Pi(host, port)
 
     def getRaspberryPi(self):
-        return self._raspberryPi 
+        return self._raspberryPi

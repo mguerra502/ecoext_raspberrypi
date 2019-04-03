@@ -3,19 +3,21 @@ import selectors
 import json
 import io
 import struct
-from RaspAppPi.Model.RaspberryPi.PiDatabaseConnector import PiDatabaseConnector
+from RaspAppPi.Model.RaspberryPi.PiClient import PiClient
 
 class PiMessage:
-    def __init__(self, selector, sock, addr):
+    def __init__(self, controller, selector, sock, addr, piPort):
         self.selector = selector
         self.sock = sock
         self.addr = addr
+        self.piPort = piPort
         self._recvBuffer = b""
         self._sendBuffer = b""
         self._jsonHeaderLEn = None
         self.jsonHeader = None
         self.request = None
         self.responseCreated = False
+        self._controller = controller
 
     def processPiEvents(self, mask):
         if mask & selectors.EVENT_READ:
@@ -90,14 +92,16 @@ class PiMessage:
         encoding = self.jsonHeader["content-encoding"]
         self.request = self._jsonDecode(data, encoding)
         print("Received request {} from {}.".format(repr(self.request), self.addr))
-        self._storeTransactionInDatabase()
+        self._sendTransactionToServer()
         self._setSelectorPiEventsMask('w')
         
-    def _storeTransactionInDatabase(self):
-        # Here, we write the method to store the data in the database
-        dataBaseConnector = PiDatabaseConnector()
-        dataBaseConnector.storeInDatabase(self.request)
-        dataBaseConnector = None
+    def _sendTransactionToServer(self):
+        # That IPv4 address in there should be the server IPv4 address
+        # That port number should be the port number the server is listening on
+        # That request has the data to be store in the database
+        # That port should be the port the Pi is listening on
+        clientPi = PiClient(self._controller, "10.250.13.33", int(65432), self.request, self.piPort)
+        clientPi.sendMessageToServer()
 
     def _setSelectorPiEventsMask(self, mode):
         # Set selector to listen for events:
