@@ -3,12 +3,9 @@ import selectors
 import json
 import io
 import struct
-import socket
 
-from RaspAppPi.Model.QRCode.EcoExTQRCodeGenerator import EcoExTQRCodeGenerator
-
-class ClientMessage():
-    def __init__(self, controller, selector, sock, addr, request):
+class ClientMessage:
+    def __init__(self, selector, sock, addr, request):
         self.selector = selector
         self.sock = sock
         self.addr = addr
@@ -19,8 +16,6 @@ class ClientMessage():
         self._jsonHeaderLen = None
         self.jsonHeader = None
         self.response = None
-        self._controller = controller
-        self._unavailableServiceFlag = False
 
     def processClientEvents(self, mask):
         if mask & selectors.EVENT_READ:
@@ -29,7 +24,7 @@ class ClientMessage():
         if mask & selectors.EVENT_WRITE:
             self.writeClientMessage()
 
-    def closeClientConnection(self, unavailableServiceFlag):
+    def closeClientConnection(self):
         print("Closing connection to {}".format(self.addr))
         try:
             self.selector.unregister(self.sock)
@@ -43,7 +38,6 @@ class ClientMessage():
         finally:
             # Delete ref to socket for garbage collector
             self.sock = None
-            self._unavailableServiceFlag = unavailableServiceFlag
 
     def writeClientMessage(self):
         if not self._requestQueued:
@@ -57,7 +51,7 @@ class ClientMessage():
                 self._setSelectorClientEventsMask("r")
 
     def queueClientRequest(self):
-        content = {**self.request["content"], **dict(port = self.request["port"])}
+        content = self.request["content"]
         contentType = self.request["type"]
         contentEncoding = self.request["encoding"]
         
@@ -69,8 +63,6 @@ class ClientMessage():
         }
 
         message = self._createClientMessage(**req)
-        print("here")
-        print(repr(message))
         
         self._sendBuffer += message
         self._requestQueued = True
@@ -93,14 +85,14 @@ class ClientMessage():
 
     def _writeClientMessage(self):
         if self._sendBuffer:
-            print("Sending {} to {}".format(repr(self._sendBuffer), self.addr))
+            print("Sending {} to {}".format(repr(json.dumps(self._sendBuffer, indent = 4, sort_keys = False)), self.addr))
             try:
                 # Should be ready to write
                 sent = self.sock.send(self._sendBuffer)
-            except socket.error:
+            except BlockingIOError:
                 # Resource temporarily unavailable
-                print("Service temporarily unavailable")
-                self.closeClientConnection(True)
+                print("Resource temporarily unavailable")
+                self.closeClientConnection()
             else:
                 self._sendBuffer = self._sendBuffer[sent:]
 
@@ -178,13 +170,5 @@ class ClientMessage():
         print("received response {} from {}.".format(self.response, self.addr))
         result = self.response.get("content")
         print("Got result: {}.".format(result))
-        # Show QR code
-        print(result.encode("utf-8"))
-        self.qr = EcoExTQRCodeGenerator(result.encode("utf-8"))
-        self.qrImage = self.qr.getQRCodeImage()
-        self._controller.homeQRWindowTransition(self.qrImage)
         # Close when response has been processed
-        self.closeClientConnection(False)
-
-    def getUnavailableServiceFlag(self):
-        return self._unavailableServiceFlag
+        self.closeClientConnection()

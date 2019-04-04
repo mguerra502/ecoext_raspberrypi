@@ -170,7 +170,7 @@ class ClientMessage:
         encoding = self.jsonHeader["content-encoding"]
         self.response = self._jsonDecode(data, encoding)
         print("received response {} from {}.".format(self.response, self.addr))
-        result = self.response.get("content")
-        print("Got result: {}.".format(result))
+        # result = self.response.get("content")
+        print("Got result: {}.".format(self.response))
         # Close when response has been processed
         self.closeClientConnection()

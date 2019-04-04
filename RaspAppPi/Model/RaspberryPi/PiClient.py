@@ -12,6 +12,7 @@ class PiClient():
         self.host, self.port = host, port
         self.request = self.createRequest(message, piPort)
         self.startConnection()
+        self._unavailableServiceFlag = False
 
     def createRequest(self, message, piPort):
         return dict(
@@ -44,7 +45,7 @@ class PiClient():
                         
                     except Exception:
                         print("Main: Error: exception for {}:\n{}".format(message.addr, traceback.format_exc()))
-                        message.closeClientConnection()
+                        message.closeClientConnection(True)
                 # Check for a socket being monitored to continue.
                 if not self.multiplexor.get_map():
                     break
@@ -53,3 +54,8 @@ class PiClient():
         finally:
             self.multiplexor.close()
             print("Client connection closed!")
+            if message.getUnavailableServiceFlag():
+                self._unavailableServiceFlag = True
+
+    def getUnavailableServiceFlag(self):
+        return self._unavailableServiceFlag

@@ -18,6 +18,7 @@ class PiMessage:
         self.request = None
         self.responseCreated = False
         self._controller = controller
+        self._contentResponse = None
 
     def processPiEvents(self, mask):
         if mask & selectors.EVENT_READ:
@@ -100,8 +101,12 @@ class PiMessage:
         # That port number should be the port number the server is listening on
         # That request has the data to be store in the database
         # That port should be the port the Pi is listening on
-        clientPi = PiClient(self._controller, "10.250.13.33", int(65432), self.request, self.piPort)
+        clientPi = PiClient(self._controller, "192.168.0.41", int(65432), self.request, self.piPort)
         clientPi.sendMessageToServer()
+        if clientPi.getUnavailableServiceFlag():
+            self._contentResponse = "Server temporarily unavailable"
+        else:
+            self._contentResponse = "Request successfully submited to the server"
 
     def _setSelectorPiEventsMask(self, mode):
         # Set selector to listen for events:
@@ -126,10 +131,9 @@ class PiMessage:
 
     def createPiResponse(self):
         # I am assuming that the reponse is the type json
-        content = {"content": "Request already accepted and submitted!"}
         contentEncoding = "utf-8"
         response = {
-            "contentBytes": self._jsonEncode(content, contentEncoding),
+            "contentBytes": self._jsonEncode(self._contentResponse, contentEncoding),
             "contentType": "text/json",
             "contentEncoding": contentEncoding
         }
