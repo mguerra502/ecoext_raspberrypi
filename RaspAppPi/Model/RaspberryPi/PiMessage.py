@@ -4,6 +4,7 @@ import json
 import io
 import struct
 from RaspAppPi.Model.RaspberryPi.PiClient import PiClient
+from RaspAppPi.Model.DatabaseConnectors.APIConnection import APIConnection
 
 class PiMessage:
     def __init__(self, controller, selector, sock, addr, piPort):
@@ -101,12 +102,16 @@ class PiMessage:
         # That port number should be the port number the server is listening on
         # That request has the data to be store in the database
         # That port should be the port the Pi is listening on
-        clientPi = PiClient(self._controller, "192.168.0.41", int(65432), self.request, self.piPort)
-        clientPi.sendMessageToServer()
-        if clientPi.getUnavailableServiceFlag():
-            self._contentResponse = "Server temporarily unavailable"
-        else:
-            self._contentResponse = "Request successfully submited to the server"
+        # clientPi = PiClient(self._controller, "192.168.0.41", int(65432), self.request, self.piPort)
+        # clientPi.sendMessageToServer()
+        # This part should be updated
+        # Delete the client pi and leave only the cnnection to the api
+        apiConn = APIConnection()
+        apiConn.storeTransactionInDatabase(self.request["transaction"])        
+        # if clientPi.getUnavailableServiceFlag():
+        #     self._contentResponse = "Server temporarily unavailable"
+        # else:
+        #     self._contentResponse = "Request successfully submited to the server"
 
     def _setSelectorPiEventsMask(self, mode):
         # Set selector to listen for events:
