@@ -2,9 +2,13 @@
     "transaction": {
         "label": "Spencer",
         "description": "Soluta sit voluptatum ut animi ipsam repellat quis.",
-        "keys": {
+        "paymentInfo": {
+            "ammount": 1.99,
+            "payment_type": "Debit Card"
+        },
+        "socketInfo": {
             "ipv4": "192.168.0.41",
-            "port": 65431
+            "port": 6432
         },
         "items": [
             {

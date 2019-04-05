@@ -5,6 +5,7 @@ import io
 import struct
 from RaspAppPi.Model.RaspberryPi.PiClient import PiClient
 from RaspAppPi.Model.DatabaseConnectors.APIConnection import APIConnection
+from RaspAppPi.Model.QRCode.EcoExTQRCodeGenerator import EcoExTQRCodeGenerator
 
 class PiMessage:
     def __init__(self, controller, selector, sock, addr, piPort):
@@ -107,7 +108,11 @@ class PiMessage:
         # This part should be updated
         # Delete the client pi and leave only the cnnection to the api
         apiConn = APIConnection()
-        apiConn.storeTransactionInDatabase(self.request["transaction"])        
+        token = apiConn.storeTransactionInDatabase(self.request["transaction"])
+        print("Here: {}".format(token))
+        self.qr = EcoExTQRCodeGenerator(token)
+        self.qrImage = self.qr.getQRCodeImage()
+        self._controller.homeQRWindowTransition(self.qrImage)
         # if clientPi.getUnavailableServiceFlag():
         #     self._contentResponse = "Server temporarily unavailable"
         # else:
