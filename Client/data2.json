@@ -6,10 +6,6 @@
             "ammount": 1.99,
             "payment_type": "Debit Card"
         },
-        "socketInfo": {
-            "ipv4": "192.168.0.41",
-            "port": 6432
-        },
         "items": [
             {
                 "product": "stir-fry",

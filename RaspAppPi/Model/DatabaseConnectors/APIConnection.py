@@ -4,9 +4,9 @@ import pprint
 
 class APIConnection():
     def __init__(self):
-        self._url = 'http://10.250.1.250:8888/api'
+        self._url = 'http://10.250.13.33:8888/api'
 
-    def storeTransactionInDatabase(self, transaction):
+    def storeTransactionInDatabase(self, transaction, ipv4, port):
         
         transactionStr = self._jsonToCleanString(transaction)
         
@@ -14,19 +14,24 @@ class APIConnection():
             mutation addTransaction {
                 addTransaction(
                     %s
+                    socketInfo: {
+                        ipv4: \"%s\",
+                        port: %s
+                    }
                 ) {
                     token_id
                 }
             }
-        """ % (transactionStr)
+        """ % (transactionStr, ipv4, port)
 
         jsonMutation = {
             'query' : mutation
         }
-        
+        print(jsonMutation)
         response = requests.post(url = self._url, json = {'query': mutation})
         
         jsonResponse = json.loads(response.text)
+        print(jsonResponse)
         
         return jsonResponse["data"]["addTransaction"]["token_id"]
 
@@ -41,12 +46,9 @@ class APIConnection():
         jsonVar = jsonVar.replace("\"price\"", "price")
         jsonVar = jsonVar.replace("\"quantity\"", "quantity")
         jsonVar = jsonVar.replace("\"tax\"", "tax")
-        jsonVar = jsonVar.replace("\"socketInfo\"", "socketInfo")
         jsonVar = jsonVar.replace("\"paymentInfo\"", "paymentInfo")
         jsonVar = jsonVar.replace("\"payment_type\"", "payment_type")
         jsonVar = jsonVar.replace("\"ammount\"", "ammount")
-        jsonVar = jsonVar.replace("\"ipv4\"", "ipv4")
-        jsonVar = jsonVar.replace("\"port\"", "port")
         jsonVar = jsonVar.replace("\\", "")
 
         return jsonVar

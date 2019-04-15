@@ -3,6 +3,7 @@ import selectors
 import json
 import io
 import struct
+import socket
 from RaspAppPi.Model.RaspberryPi.PiClient import PiClient
 from RaspAppPi.Model.DatabaseConnectors.APIConnection import APIConnection
 from RaspAppPi.Model.QRCode.EcoExTQRCodeGenerator import EcoExTQRCodeGenerator
@@ -108,7 +109,7 @@ class PiMessage:
         # This part should be updated
         # Delete the client pi and leave only the cnnection to the api
         apiConn = APIConnection()
-        token = apiConn.storeTransactionInDatabase(self.request["transaction"])
+        token = apiConn.storeTransactionInDatabase(self.request["transaction"], socket.gethostbyname_ex(socket.gethostname())[2][len(socket.gethostbyname_ex(socket.gethostname())[2])-1], self.piPort)
         print("Here: {}".format(token))
         self.qr = EcoExTQRCodeGenerator(token)
         self.qrImage = self.qr.getQRCodeImage()

@@ -179,10 +179,10 @@ class ClientMessage():
         result = self.response.get("content")
         print("Got result: {}.".format(result))
         # Show QR code
-        print(result.encode("utf-8"))
-        self.qr = EcoExTQRCodeGenerator(result.encode("utf-8"))
-        self.qrImage = self.qr.getQRCodeImage()
-        self._controller.homeQRWindowTransition(self.qrImage)
+        # print(result.encode("utf-8"))
+        # self.qr = EcoExTQRCodeGenerator(result.encode("utf-8"))
+        # self.qrImage = self.qr.getQRCodeImage()
+        # self._controller.homeQRWindowTransition(self.qrImage)
         # Close when response has been processed
         self.closeClientConnection(False)
 
