@@ -11,4 +11,5 @@ class RootWindow(Tk):
         # self.attributes('-fullscreen', True)
         self.geometry("%dx%d+0+0" % (width, height))
         self.resizable(False, False)
-        self.after(0, self.deiconify)
+        self.after(1000, self.deiconify)
+        

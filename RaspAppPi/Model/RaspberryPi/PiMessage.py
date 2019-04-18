@@ -32,14 +32,14 @@ class PiMessage:
 
     def readClientMessage(self):
         self._readClientMessage()
-
+        
         if self._jsonHeaderLEn is None:
             self.processProtoHeader()
 
         if self._jsonHeaderLEn is not None:
             if self.jsonHeader is None:
                 self.processJsonHeader()
-
+        
         if self.jsonHeader:
             if self.request is None:
                 self.processClientRequest()
@@ -48,6 +48,7 @@ class PiMessage:
         try:
             # Should be able to read
             data = self.sock.recv(4096)
+            print("Fuck OFF {}!".format(data))
         except BlockingIOError:
             # Resource temporarily unavailable
             pass
@@ -86,18 +87,26 @@ class PiMessage:
         return obj
 
     def processClientRequest(self):
+        print("4")
         contentLen = self.jsonHeader["content-length"]
         if not len(self._recvBuffer) >= contentLen:
             return
-
+        print(self._recvBuffer)
         data = self._recvBuffer[:contentLen]
         self._recvBuffer = self._recvBuffer[contentLen:]
         # I am always expecting a json request.
         encoding = self.jsonHeader["content-encoding"]
         self.request = self._jsonDecode(data, encoding)
         print("Received request {} from {}.".format(repr(self.request), self.addr))
-        self._sendTransactionToServer()
-        self._setSelectorPiEventsMask('w')
+
+        if ("transaction" not in self.request):
+            print("MAMALO!")
+            self._setSelectorPiEventsMask('w')
+            # self.closePiConnection()
+        else:
+            print("HELLO!")
+            self._sendTransactionToServer()
+            self._setSelectorPiEventsMask('w')
         
     def _sendTransactionToServer(self):
         # That IPv4 address in there should be the server IPv4 address

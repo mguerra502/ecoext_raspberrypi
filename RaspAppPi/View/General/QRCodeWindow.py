@@ -14,6 +14,7 @@ class QRCodeWindow(TopLevelWindow):
         self.view = theView
         self._qrCodeImage = ImageTk.PhotoImage(qrCodeImage)
         self._setQRCodeOnWindow()
+        self.protocol("WM_DELETE_WINDOW", self.onClosing)
 
     def _setQRCodeOnWindow(self):
         logoFrame = FrameImage(self, 480, 320)

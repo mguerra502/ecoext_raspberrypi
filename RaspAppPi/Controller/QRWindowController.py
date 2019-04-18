@@ -1,9 +1,9 @@
 from tkinter import Tk
 
-class HomeWindowController():
+class QRWindowController():
     def __init__(self, control):
         self._controller = control
 
-    def homeQRWindowTransition(self, qrImage):
-        self._controller.getView().createQRCodeWindow(qrImage)
+    def qrScannedWindowTransition(self):
+        self._controller.getView().createScannedQRCodeWindow()
         self._controller.getView().getHomeWindow().withdraw()

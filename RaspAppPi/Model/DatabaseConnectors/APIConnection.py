@@ -4,7 +4,7 @@ import pprint
 
 class APIConnection():
     def __init__(self):
-        self._url = 'http://10.250.13.33:8888/api'
+        self._url = 'http://192.168.0.41:8888/api'
 
     def storeTransactionInDatabase(self, transaction, ipv4, port):
         
