@@ -10,7 +10,7 @@ class MainController():
         self._homeController = HomeWindowController(self)
         self._QRController = None
         # Set references of the view and the controller in the model
-        self._model.getRaspberryPi().setViewController(self._view, self._homeController)
+        self._model.getRaspberryPi().setViewController(self._view, self)
         # Set a reference controller in the view
         # TODO
 
@@ -18,7 +18,6 @@ class MainController():
         self._listenerThreat = Thread(target = self._model.getRaspberryPi().startMonitoringSocket)
         self._listenerThreat.start()
         # Start main loop for the GUI
-        # self._view.getHomeWindow().after(10000, self.closeWindowAfterTSeconds)
         self._view.getHomeWindow().mainloop()   
 
     def getModel(self):
@@ -35,7 +34,3 @@ class MainController():
 
     def createQRController(self):
         self._QRController = QRWindowController(self)
-
-    def closeWindowAfterTSeconds(self):
-        self._model.getRaspberryPi().getMultiplexor().close()
-        self._view.getHomeWindow().destroy()

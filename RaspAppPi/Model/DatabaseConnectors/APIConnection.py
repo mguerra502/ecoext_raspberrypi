@@ -4,7 +4,7 @@ import pprint
 
 class APIConnection():
     def __init__(self):
-        self._url = 'http://192.168.0.41:8888/api'
+        self._url = 'http://192.168.1.29:8888/api'
 
     def storeTransactionInDatabase(self, transaction, ipv4, port):
         
@@ -27,13 +27,12 @@ class APIConnection():
         jsonMutation = {
             'query' : mutation
         }
-        print(jsonMutation)
+        
         response = requests.post(url = self._url, json = {'query': mutation})
         
         jsonResponse = json.loads(response.text)
-        print(jsonResponse)
         
-        return jsonResponse["data"]["addTransaction"]["token_id"]
+        return jsonResponse
 
     def _jsonToCleanString(self, jsonVar):
         jsonVar = json.dumps(jsonVar)

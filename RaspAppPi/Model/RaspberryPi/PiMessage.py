@@ -48,7 +48,6 @@ class PiMessage:
         try:
             # Should be able to read
             data = self.sock.recv(4096)
-            print("Fuck OFF {}!".format(data))
         except BlockingIOError:
             # Resource temporarily unavailable
             pass
@@ -87,7 +86,6 @@ class PiMessage:
         return obj
 
     def processClientRequest(self):
-        print("4")
         contentLen = self.jsonHeader["content-length"]
         if not len(self._recvBuffer) >= contentLen:
             return
@@ -100,11 +98,12 @@ class PiMessage:
         print("Received request {} from {}.".format(repr(self.request), self.addr))
 
         if ("transaction" not in self.request):
-            print("MAMALO!")
-            self._setSelectorPiEventsMask('w')
-            # self.closePiConnection()
+            # Here is where we show the Scanned Window
+            self._controller.createQRController()
+            self._controller.getQRController().qrScannedWindowTransition()
+            self.closePiConnection()
         else:
-            print("HELLO!")
+            # Here is where we sent data to API and create QR
             self._sendTransactionToServer()
             self._setSelectorPiEventsMask('w')
         
@@ -117,12 +116,20 @@ class PiMessage:
         # clientPi.sendMessageToServer()
         # This part should be updated
         # Delete the client pi and leave only the cnnection to the api
-        apiConn = APIConnection()
-        token = apiConn.storeTransactionInDatabase(self.request["transaction"], socket.gethostbyname_ex(socket.gethostname())[2][len(socket.gethostbyname_ex(socket.gethostname())[2])-1], self.piPort)
-        print("Here: {}".format(token))
-        self.qr = EcoExTQRCodeGenerator(token)
-        self.qrImage = self.qr.getQRCodeImage()
-        self._controller.homeQRWindowTransition(self.qrImage)
+        try:
+            apiConn = APIConnection()
+            apiResponse = apiConn.storeTransactionInDatabase(self.request["transaction"], socket.gethostbyname_ex(socket.gethostname())[2][len(socket.gethostbyname_ex(socket.gethostname())[2])-1], self.piPort)
+        
+            if ("data" in apiResponse):
+                self.qr = EcoExTQRCodeGenerator(apiResponse["data"]["addTransaction"]["token_id"])
+                self.qrImage = self.qr.getQRCodeImage()
+                self._controller.getHomeController().homeQRWindowTransition(self.qrImage)
+                self._contentResponse = "Transaction Stored Successfully in Database"
+            else:
+                self._contentResponse = "Transaction Could Not Be Stored in Database"
+        except Exception:
+            self._contentResponse = "Pi Could Not Connect to API"
+
         # if clientPi.getUnavailableServiceFlag():
         #     self._contentResponse = "Server temporarily unavailable"
         # else:
