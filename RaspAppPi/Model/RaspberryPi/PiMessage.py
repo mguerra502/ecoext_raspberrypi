@@ -99,8 +99,13 @@ class PiMessage:
 
         if ("transaction" not in self.request):
             # Here is where we show the Scanned Window
-            self._controller.createQRController()
-            self._controller.getQRController().qrScannedWindowTransition()
+            # The only way to show Scnned Window after the QR window
+            # Is to check if there is a intance of QR window no Null.
+            print(self._controller.getView().getQRWindow().winfo_exists())
+            if (self._controller.getView().getQRWindow().winfo_exists() == 1):
+                self._controller.createQRController()
+                self._controller.getQRController().qrScannedWindowTransition()
+                
             self.closePiConnection()
         else:
             # Here is where we sent data to API and create QR
