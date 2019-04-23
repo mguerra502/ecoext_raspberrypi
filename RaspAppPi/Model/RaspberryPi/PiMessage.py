@@ -4,7 +4,6 @@ import json
 import io
 import struct
 import socket
-from RaspAppPi.Model.RaspberryPi.PiClient import PiClient
 from RaspAppPi.Model.DatabaseConnectors.APIConnection import APIConnection
 from RaspAppPi.Model.QRCode.EcoExTQRCodeGenerator import EcoExTQRCodeGenerator
 
@@ -123,7 +122,8 @@ class PiMessage:
         # Delete the client pi and leave only the cnnection to the api
         try:
             apiConn = APIConnection()
-            apiResponse = apiConn.storeTransactionInDatabase(self.request["transaction"], socket.gethostbyname_ex(socket.gethostname())[2][len(socket.gethostbyname_ex(socket.gethostname())[2])-1], self.piPort)
+            print(socket.gethostbyname_ex(socket.gethostname())[2])
+            apiResponse = apiConn.storeTransactionInDatabase(self.request["transaction"], "192.168.43.179", self.piPort)
         
             if ("data" in apiResponse):
                 self.qr = EcoExTQRCodeGenerator(apiResponse["data"]["addTransaction"]["token_id"])
