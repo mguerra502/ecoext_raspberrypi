@@ -3,47 +3,44 @@ import selectors
 import json
 import io
 import struct
-import socket
-from RaspAppPi.Model.DatabaseConnectors.APIConnection import APIConnection
-from RaspAppPi.Model.QRCode.EcoExTQRCodeGenerator import EcoExTQRCodeGenerator
 
-class PiMessage:
-    def __init__(self, controller, selector, sock, addr, piPort):
+from ServerDatabaseConnector import ServerDatabaseConnector
+from EcoExTIDEncrypter import EcoExTIDEncrypter
+
+class ServerMessage():
+    def __init__(self, selector, sock, addr):
         self.selector = selector
         self.sock = sock
-        self.addr = addr
-        self.piPort = piPort
+        self.addr = addr # Pi IPv4 address
         self._recvBuffer = b""
         self._sendBuffer = b""
         self._jsonHeaderLEn = None
         self.jsonHeader = None
         self.request = None
         self.responseCreated = False
-        self._controller = controller
-        self._contentResponse = None
 
-    def processPiEvents(self, mask):
+    def processServerEvents(self, mask):
         if mask & selectors.EVENT_READ:
-            self.readClientMessage()
+            self.readPiMessage()
 
         if mask & selectors.EVENT_WRITE:
-            self.writePiMessage()
+            self.writeServerMessage()
 
-    def readClientMessage(self):
-        self._readClientMessage()
-        
+    def readPiMessage(self):
+        self._readPiMessage()
+
         if self._jsonHeaderLEn is None:
             self.processProtoHeader()
 
         if self._jsonHeaderLEn is not None:
             if self.jsonHeader is None:
                 self.processJsonHeader()
-        
+
         if self.jsonHeader:
             if self.request is None:
-                self.processClientRequest()
+                self.processPiRequest()
 
-    def _readClientMessage(self):
+    def _readPiMessage(self):
         try:
             # Should be able to read
             data = self.sock.recv(4096)
@@ -84,63 +81,30 @@ class PiMessage:
         tiow.close()
         return obj
 
-    def processClientRequest(self):
+    def processPiRequest(self):
         contentLen = self.jsonHeader["content-length"]
         if not len(self._recvBuffer) >= contentLen:
             return
-        print(self._recvBuffer)
+
         data = self._recvBuffer[:contentLen]
         self._recvBuffer = self._recvBuffer[contentLen:]
         # I am always expecting a json request.
         encoding = self.jsonHeader["content-encoding"]
         self.request = self._jsonDecode(data, encoding)
         print("Received request {} from {}.".format(repr(self.request), self.addr))
-
-        if ("transaction" not in self.request):
-            # Here is where we show the Scanned Window
-            # The only way to show Scnned Window after the QR window
-            # Is to check if there is a intance of QR window no Null.
-            print(self._controller.getView().getQRWindow().winfo_exists())
-            if (self._controller.getView().getQRWindow().winfo_exists() == 1):
-                self._controller.createQRController()
-                self._controller.getQRController().qrScannedWindowTransition()
-                
-            self.closePiConnection()
-        else:
-            # Here is where we sent data to API and create QR
-            self._sendTransactionToServer()
-            self._setSelectorPiEventsMask('w')
         
-    def _sendTransactionToServer(self):
-        # That IPv4 address in there should be the server IPv4 address
-        # That port number should be the port number the server is listening on
-        # That request has the data to be store in the database
-        # That port should be the port the Pi is listening on
-        # clientPi = PiClient(self._controller, "192.168.0.41", int(65432), self.request, self.piPort)
-        # clientPi.sendMessageToServer()
-        # This part should be updated
-        # Delete the client pi and leave only the cnnection to the api
-        try:
-            apiConn = APIConnection()
-            print(socket.gethostbyname_ex(socket.gethostname())[2])
-            apiResponse = apiConn.storeTransactionInDatabase(self.request["transaction"], "192.168.43.179", self.piPort)
+        self._storeTransactionInDatabase()
+        self._setSelectorServerEventsMask('w')
         
-            if ("data" in apiResponse):
-                self.qr = EcoExTQRCodeGenerator(apiResponse["data"]["addTransaction"]["token_id"])
-                self.qrImage = self.qr.getQRCodeImage()
-                self._controller.getHomeController().homeQRWindowTransition(self.qrImage)
-                self._contentResponse = "Transaction Stored Successfully in Database"
-            else:
-                self._contentResponse = "Transaction Could Not Be Stored in Database"
-        except Exception:
-            self._contentResponse = "Pi Could Not Connect to API"
+    def _storeTransactionInDatabase(self):
+        # Here, we write the method to store the data in the database
+        dataBaseConnector = ServerDatabaseConnector()
+        transactionIdentifier = EcoExTIDEncrypter(dataBaseConnector.storeTransactionInDatabase(self.request["transactions"][0])[0], self.request["port"], self.addr[0])
+        self._transactionToken = transactionIdentifier.getEncryptedEncodedID()
+        dataBaseConnector.closeConnection()
+        # TODO here encryption and encoding for the QR code
 
-        # if clientPi.getUnavailableServiceFlag():
-        #     self._contentResponse = "Server temporarily unavailable"
-        # else:
-        #     self._contentResponse = "Request successfully submited to the server"
-
-    def _setSelectorPiEventsMask(self, mode):
+    def _setSelectorServerEventsMask(self, mode):
         # Set selector to listen for events:
         # Modes: 'r', 'w', or 'rw'
         if mode == 'r':
@@ -154,29 +118,31 @@ class PiMessage:
 
         self.selector.modify(self.sock, events, data = self)
 
-    def writePiMessage(self):
+    def writeServerMessage(self):
         if self.request:
             if not self.responseCreated:
-                self.createPiResponse()
+                self.createServerResponse()
 
-        self._writePiMessage()
+        self._writeServerMessage()
 
-    def createPiResponse(self):
+    def createServerResponse(self):
         # I am assuming that the reponse is the type json
+        # TODO
+        content = {"content": self._transactionToken.decode("utf-8")}
         contentEncoding = "utf-8"
         response = {
-            "contentBytes": self._jsonEncode(self._contentResponse, contentEncoding),
+            "contentBytes": self._jsonEncode(content, contentEncoding),
             "contentType": "text/json",
             "contentEncoding": contentEncoding
         }
-        message = self._createPiMessage(**response)
+        message = self._createServerMessage(**response)
         self.responseCreated = True
         self._sendBuffer += message
 
     def _jsonEncode(self, obj, encoding):
         return json.dumps(obj, ensure_ascii = False).encode(encoding)
 
-    def _createPiMessage(self, *, contentBytes, contentType, contentEncoding):
+    def _createServerMessage(self, *, contentBytes, contentType, contentEncoding):
         jsonHeader = {
             "byteorder": sys.byteorder,
             "content-type": contentType,
@@ -189,7 +155,7 @@ class PiMessage:
 
         return message
 
-    def _writePiMessage(self):
+    def _writeServerMessage(self):
         if self._sendBuffer:
             print("Sending {} to {}.".format(repr(self._sendBuffer), self.addr))
             try:
@@ -204,9 +170,9 @@ class PiMessage:
                 # The response has been sent.
                 if sent and not self._sendBuffer:
                     print("Closing connection!")
-                    self.closePiConnection()
+                    self.closeServerConnection()
 
-    def closePiConnection(self):
+    def closeServerConnection(self):
         print("Closing connection to {}.".format(self.addr))
         try:
             self.selector.unregister(self.sock)

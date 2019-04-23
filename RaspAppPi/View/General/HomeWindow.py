@@ -19,12 +19,11 @@ class HomeWindow(RootWindow):
         logoCanvas = CanvasImage(logoFrame, 480, 320)
         logoCanvas.pack()
 
-        pathToImage = os.path.join(os.path.dirname(__file__), r"Images\logo520x520.png")
+        pathToImage = os.path.join(os.path.dirname(__file__), r"Images/logo520x520.png")
         logoLoader = ImageLoader(pathToImage)
         self._logoImage = logoLoader.getPhotoImage()
         logoCanvas.create_image(240, 160, image = self._logoImage)
 
     def onClosing(self):
-        print("Server Connection closed!")
         self.view.getModel().getRaspberryPi().getMultiplexor().close()
         self.destroy()

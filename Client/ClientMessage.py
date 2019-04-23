@@ -3,6 +3,8 @@ import selectors
 import json
 import io
 import struct
+import socket
+from pprint import pprint
 
 class ClientMessage:
     def __init__(self, selector, sock, addr, request):
@@ -85,13 +87,14 @@ class ClientMessage:
 
     def _writeClientMessage(self):
         if self._sendBuffer:
-            print("Sending {} to {}".format(repr(self._sendBuffer), self.addr))
+            pprint("Sending {} to {}".format(repr(self._sendBuffer), self.addr))
             try:
                 # Should be ready to write
                 sent = self.sock.send(self._sendBuffer)
-            except BlockingIOError:
+            except Exception:
                 # Resource temporarily unavailable
-                pass
+                print("Pi is temporarily unavailable")
+                self.closeClientConnection()
             else:
                 self._sendBuffer = self._sendBuffer[sent:]
 
@@ -167,7 +170,7 @@ class ClientMessage:
         encoding = self.jsonHeader["content-encoding"]
         self.response = self._jsonDecode(data, encoding)
         print("received response {} from {}.".format(self.response, self.addr))
-        result = self.response.get("content")
-        print("Got result: {}.".format(result))
+        # result = self.response.get("content")
+        print("Got result: {}.".format(self.response))
         # Close when response has been processed
         self.closeClientConnection()

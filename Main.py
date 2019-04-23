@@ -1,8 +1,11 @@
+"""Imports of the dependencies of this class."""
 from sys import exit, argv
 import sys
 from RaspAppPi.MainApp import MainApp
 
+"""Method to run the Pi Application."""
 def QRGeneratorApp():
+    """Here, the Main App is instatiated."""
     MainApp(sys.argv[1], int(sys.argv[2]))
     
 

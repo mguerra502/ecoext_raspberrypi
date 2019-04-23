@@ -2,10 +2,6 @@
     "transaction": {
         "label": "Spencer",
         "description": "Soluta sit voluptatum ut animi ipsam repellat quis.",
-        "paymentInfo": {
-            "ammount": 5758.51,
-            "payment_type": "Debit Card"
-        },
         "items": [
             {
                 "product": "stir-fry",

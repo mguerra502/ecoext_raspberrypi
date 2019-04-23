@@ -5,21 +5,21 @@ from RaspAppPi.View.General.FrameImage import FrameImage
 from RaspAppPi.View.General.CanvasImage import CanvasImage
 from RaspAppPi.View.General.ImageLoader import ImageLoader
 
-class ScannedDoneWindow(TopLevelWindow):
+class NotScannedDoneWindow(TopLevelWindow):
     def __init__(self, theView):
         super().__init__("EcoExT", 480, 320)
         self.view = theView
         self.protocol("WM_DELETE_WINDOW", self.onClosing)
-        self._setImageOnScannedDoneWindow()
+        self._setImageOnNotScannedDoneWindow()
 
-    def _setImageOnScannedDoneWindow(self):
+    def _setImageOnNotScannedDoneWindow(self):
         logoFrame = FrameImage(self, 480, 320)
         logoFrame.pack()
         
         logoCanvas = CanvasImage(logoFrame, 480, 320)
         logoCanvas.pack()
 
-        pathToImage = os.path.join(os.path.dirname(__file__), r"Images\scanned.png")
+        pathToImage = os.path.join(os.path.dirname(__file__), r"Images\no.png")
         logoLoader = ImageLoader(pathToImage)
         self._logoImage = logoLoader.getPhotoImage()
         logoCanvas.create_image(240, 160, image = self._logoImage)

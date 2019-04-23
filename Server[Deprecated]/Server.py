@@ -1,25 +1,15 @@
-"""Imports of the dependencies of this class."""
 import selectors
 import socket
 import traceback
 
-from RaspAppPi.Model.RaspberryPi.PiMessage import PiMessage
+from ServerMessage import ServerMessage
 
-"""Class definition for the Socket and Selectors Application."""
-class Pi():
-    """Class for the Socket and Selectors App."""
-
+class Server():
     def __init__(self, host, port):
-        """Use to Instatiante the Socket and Selectors Application."""
         self.multiplexor = selectors.DefaultSelector()
         self.host, self.port = host, port
         self._setListenerSocket()
         self.multiplexor.register(self.listenerSocket, selectors.EVENT_READ, data = None)
-    
-    def setViewController(self, view, controller):
-        """Set a reference of the view and controller in the listening thread."""
-        self._view = view
-        self._controller = controller
 
     def _setListenerSocket(self):
         self.listenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,7 +25,7 @@ class Pi():
         conn, addr = self.listenerSocket.accept() # Should be ready to read
         print("Accepted connection from {}.".format(addr))
         conn.setblocking(False)
-        message = PiMessage(self._controller, self.multiplexor, conn, addr, self.port)
+        message = ServerMessage(self.multiplexor, conn, addr)
         self.multiplexor.register(conn, selectors.EVENT_READ, data = message)
 
     def startMonitoringSocket(self):
@@ -53,10 +43,10 @@ class Pi():
                     else:
                         message = key.data
                         try:
-                            message.processPiEvents(mask)
+                            message.processServerEvents(mask)
                         except Exception:
                             print("Main: Error: exception for {}:\n{}".format(message.addr, traceback.format_exc()))
-                            message.closePiConnection()
+                            message.closeServerConnection()
         except KeyboardInterrupt:
             print("Caught keyboard interrupt, exiting!")
         finally:

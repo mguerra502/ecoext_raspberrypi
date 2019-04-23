@@ -1,0 +1,42 @@
+{
+    "transaction": {
+        "label": "Spencer",
+        "description": "Soluta sit voluptatum ut animi ipsam repellat quis.",
+        "paymentInfo": {
+            "ammount": 5758.51,
+            "payment_type": "Debit Card"
+        },
+        "items": [
+            {
+                "product": "stir-fry",
+                "price": -325.93,
+                "quantity": 1,
+                "tax": 12.5
+            },
+            {
+                "product": "seeds",
+                "price": -611.69,
+                "quantity": 7,
+                "tax": 12.5
+            },
+            {
+                "product": "fork",
+                "price": -198.46,
+                "quantity": 2,
+                "tax": 12.5
+            },
+            {
+                "product": "oil",
+                "price": -110.83,
+                "quantity": 5,
+                "tax": 12.5
+            },
+            {
+                "product": "nourishment",
+                "price": -66.56,
+                "quantity": 3,
+                "tax": 12.5
+            }
+        ]
+    }
+}

@@ -8,13 +8,13 @@ import os
 class EcoExTQRCodeGenerator:
     
     # Getting the logo from the file system
-    _ecoExTLogo = Image.open('logo520x520.png')
+    pathToImage = os.path.join(os.path.dirname(__file__), r"logo520x520.png")
+    _ecoExTLogo = Image.open(pathToImage)
     
     def __init__(self, valueToEncode):
         # Creating the QR Code Object
         self._valueToEncode = valueToEncode
         self._ecoExTQRCode = self._qRCodeDef()
-        self._ecoExTQRCodeImage = None
         self._createEcoExTQRCodeImage()
         
     def _qRCodeDef(self):
